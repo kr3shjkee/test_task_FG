@@ -1,6 +1,7 @@
 ﻿using System;
 using Signals.BoardSignals;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Game
@@ -30,7 +31,7 @@ namespace Game
         public Vector2 LocalPosition => _localPosition;
         public State CurrentState;
         public int CurrentElementId;
-        public int pointPrice;
+        public int WayNumber;
 
         [Inject]
         public void Construct(PointSetting setting, SignalBus signalBus)
