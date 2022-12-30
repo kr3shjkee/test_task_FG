@@ -221,6 +221,7 @@ namespace Game
             
             var finishPoint = _points.FirstOrDefault(pnt => pnt.PointID == signal.PointID);
             var elementForMove = _elements.FirstOrDefault(elem => elem.CurrentState == Element.State.Clicked);
+            var firstPoint = GetPointIdByElement(elementForMove.ElementID);
             List<int> selectedPoints = new List<int>();
             foreach (var point in _points)
             {
@@ -230,74 +231,73 @@ namespace Game
 
             List<int> firstPointsForMove = new List<int>();
             List<int> pointsAfterMove = new List<int>();
-            List<int> tempForClear = new List<int>();
-            
-            while (finishPoint.CurrentElementId != elementForMove.ElementID)
+            Stack<Point> wayPoints = new Stack<Point>();
+            wayPoints.Push(finishPoint);
+            int price = 1;
+            firstPointsForMove.AddRange(_fileReader.Data.MovesFromPoint[firstPoint]);
+
+            bool isAlgorithmEnd = false;
+            while (true)
             {
-                var startPoint = GetPointIdByElement(elementForMove.ElementID);
-                firstPointsForMove.Clear();
-                pointsAfterMove.Clear();
-                firstPointsForMove.AddRange(_fileReader.Data.MovesFromPoint[startPoint]);
                 
-                tempForClear.Clear();
                 foreach (var point in firstPointsForMove)
                 {
-                    var checkPoint = _points.FirstOrDefault(pnt => pnt.PointID == point);
-                    if (checkPoint.CurrentState != Point.State.Selected)
-                        tempForClear.Add(checkPoint.PointID);
-                }
-
-                for (int i = 0; i < tempForClear.Count; i++)
-                {
-                    firstPointsForMove.Remove(tempForClear[i]);
-                }
-
-                if (firstPointsForMove.Count == 1)
-                {
-                    await Move(elementForMove, firstPointsForMove[0]);
-                }
-                else if (firstPointsForMove.Count > 1)
-                {
-                    bool isEnd = false;
-                    foreach (var point in firstPointsForMove)
+                    if (_points[point-1].CurrentState == Point.State.Selected)
                     {
-                        if (finishPoint.PointID == point)
+                        if (_points[point - 1].PointID == finishPoint.PointID)
                         {
-                            await Move(elementForMove, point);
-                            isEnd = true;
+                            _points[point - 1].pointPrice = price;
+                            _points[point - 1].CurrentState = Point.State.None;
+                            pointsAfterMove.Clear();
                             break;
                         }
-                    }
-                    if (isEnd)
-                        continue;
-                    
-                    foreach (var point in firstPointsForMove)
-                    {
-                        bool isNeedToRepeat = false;
-                        pointsAfterMove.Clear();
+                        _points[point - 1].pointPrice = price;
+                        _points[point - 1].CurrentState = Point.State.None;
                         pointsAfterMove.AddRange(_fileReader.Data.MovesFromPoint[point]);
-                        foreach (var pnt in pointsAfterMove)
-                        {
-                            var checkedPoint = _points.FirstOrDefault(item => item.PointID == pnt);
-                            if (checkedPoint.CurrentState == Point.State.Selected)
-                            {
-                                await Move(elementForMove, point);
-                                isNeedToRepeat = false;
-                                break;
-                            }
-
-                            isNeedToRepeat = true;
-                        }
-                        if (!isNeedToRepeat)
-                            break;
                     }
                     
+                }
+
+                if (pointsAfterMove.Count == 0)
+                    break;
+                
+                price++;
+                firstPointsForMove.Clear();
+                firstPointsForMove.AddRange(pointsAfterMove);
+                pointsAfterMove.Clear();
+            }
+                
+            bool isWayStackReady = false;
+            while (!isWayStackReady)
+            {
+                foreach (var point in _fileReader.Data.MovesFromPoint[wayPoints.Peek().PointID])
+                {
+                    var currentPoint = _points.FirstOrDefault(pnt => pnt.PointID == point);
+                    var diff = wayPoints.Peek().pointPrice - currentPoint.pointPrice;
+                    if (diff == 1 && currentPoint.PointID!=firstPoint && currentPoint.pointPrice!=0)
+                    {
+                        wayPoints.Push(currentPoint);
+                        break;
+                    }
+                    else if (currentPoint.PointID == firstPoint)
+                    {
+                        isWayStackReady = true;
+                        break;
+                    }
                 }
             }
+
+            while (wayPoints.Count>0)
+            {
+                await Move(elementForMove, wayPoints.Pop().PointID);
+            }
+
+            
             elementForMove.SetSelected(false);
             elementForMove.CurrentState = Element.State.None;
             foreach (var point in _points)
             {
+                point.pointPrice = 0;
                 if (point.CurrentState == Point.State.Selected)
                     point.SetSelected(false);
             }

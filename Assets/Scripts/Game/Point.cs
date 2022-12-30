@@ -30,6 +30,7 @@ namespace Game
         public Vector2 LocalPosition => _localPosition;
         public State CurrentState;
         public int CurrentElementId;
+        public int pointPrice;
 
         [Inject]
         public void Construct(PointSetting setting, SignalBus signalBus)

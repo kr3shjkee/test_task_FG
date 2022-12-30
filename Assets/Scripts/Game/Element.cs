@@ -22,7 +22,7 @@ namespace Game
             OnFinish
         }
 
-        private const float MOVE_SPEED = 2f;
+        private const float MOVE_SPEED = 1.2f;
 
         [SerializeField] private SpriteRenderer elementIcon;
         [SerializeField] private GameObject elementBg;
