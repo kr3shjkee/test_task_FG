@@ -242,17 +242,18 @@ namespace Game
                 
                 foreach (var point in firstPointsForMove)
                 {
-                    if (_points[point-1].CurrentState == Point.State.Selected)
+                    var currentPoint = _points.FirstOrDefault(pnt => pnt.PointID == point);
+                    if (currentPoint.CurrentState == Point.State.Selected)
                     {
-                        if (_points[point - 1].PointID == finishPoint.PointID)
+                        if (currentPoint.PointID == finishPoint.PointID)
                         {
-                            _points[point - 1].pointPrice = price;
-                            _points[point - 1].CurrentState = Point.State.None;
+                            currentPoint.WayNumber = price;
+                            currentPoint.CurrentState = Point.State.None;
                             pointsAfterMove.Clear();
                             break;
                         }
-                        _points[point - 1].pointPrice = price;
-                        _points[point - 1].CurrentState = Point.State.None;
+                        currentPoint.WayNumber = price;
+                        currentPoint.CurrentState = Point.State.None;
                         pointsAfterMove.AddRange(_fileReader.Data.MovesFromPoint[point]);
                     }
                     
@@ -273,8 +274,8 @@ namespace Game
                 foreach (var point in _fileReader.Data.MovesFromPoint[wayPoints.Peek().PointID])
                 {
                     var currentPoint = _points.FirstOrDefault(pnt => pnt.PointID == point);
-                    var diff = wayPoints.Peek().pointPrice - currentPoint.pointPrice;
-                    if (diff == 1 && currentPoint.PointID!=firstPoint && currentPoint.pointPrice!=0)
+                    var diff = wayPoints.Peek().WayNumber - currentPoint.WayNumber;
+                    if (diff == 1 && currentPoint.PointID!=firstPoint && currentPoint.WayNumber!=0)
                     {
                         wayPoints.Push(currentPoint);
                         break;
@@ -297,7 +298,7 @@ namespace Game
             elementForMove.CurrentState = Element.State.None;
             foreach (var point in _points)
             {
-                point.pointPrice = 0;
+                point.WayNumber = 0;
                 if (point.CurrentState == Point.State.Selected)
                     point.SetSelected(false);
             }
