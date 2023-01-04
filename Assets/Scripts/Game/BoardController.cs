@@ -111,8 +111,8 @@ namespace Game
                 var element = _elementFactory.Create(new ElementSetting(i + 1, point.transform.localPosition));
                 element.Initialize();
                 point.CurrentState = Point.State.Busy;
-                point.CurrentElementId = element.ElementID;
-                element.pointIdForFinish = _fileReader.Data.FinishElementsPos[i];
+                point.SetCurrentElementId(element.ElementID);
+                element.SetPointIdForFinish(_fileReader.Data.FinishElementsPos[i]);
                 _elements[i] = element;
             }
         }
@@ -247,12 +247,12 @@ namespace Game
                     {
                         if (currentPoint.PointID == finishPoint.PointID)
                         {
-                            currentPoint.WayNumber = price;
+                            currentPoint.SetWayNumber(price);
                             currentPoint.CurrentState = Point.State.None;
                             pointsAfterMove.Clear();
                             break;
                         }
-                        currentPoint.WayNumber = price;
+                        currentPoint.SetWayNumber(price);
                         currentPoint.CurrentState = Point.State.None;
                         pointsAfterMove.AddRange(_fileReader.Data.MovesFromPoint[point]);
                     }
@@ -298,7 +298,7 @@ namespace Game
             elementForMove.CurrentState = Element.State.None;
             foreach (var point in _points)
             {
-                point.WayNumber = 0;
+                point.SetWayNumberDefault();
                 if (point.CurrentState == Point.State.Selected)
                     point.SetSelected(false);
             }
@@ -310,9 +310,9 @@ namespace Game
         {
             var pointWithElement = _points.FirstOrDefault(point => point.CurrentElementId == element.ElementID);
             var nextPoint = _points.FirstOrDefault(point => point.PointID == pointId);
-            pointWithElement.CurrentElementId = 0;
+            pointWithElement.SetCurrentElementIdDefault();
             pointWithElement.CurrentState = Point.State.None;
-            nextPoint.CurrentElementId = element.ElementID;
+            nextPoint.SetCurrentElementId(element.ElementID); 
             nextPoint.SetSelected(false);
             nextPoint.CurrentState = Point.State.Busy;
             await element.MoveToPoint(nextPoint.transform.localPosition);
@@ -323,7 +323,7 @@ namespace Game
             int finishedElementsCount = 0;
             foreach (var element in _elements)
             {
-                if (element.pointIdForFinish == GetPointIdByElement(element.ElementID))
+                if (element.PointIdForFinish == GetPointIdByElement(element.ElementID))
                 {
                     element.CurrentState = Element.State.OnFinish;
                     finishedElementsCount++;

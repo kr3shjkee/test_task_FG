@@ -31,13 +31,14 @@ namespace Game
         private int _elementID;
         private Color _elementColor;
         private Vector2 _localPosition;
+        private int _pointIdForFinish;
         private Dictionary<int, Color> _colors;
 
         public int ElementID => _elementID;
         public Vector2 LocalPosition => _localPosition;
 
         public State CurrentState;
-        public int pointIdForFinish;
+        public int PointIdForFinish => _pointIdForFinish;
 
         [Inject]
         public void Construct(ElementSetting elementSetting, SignalBus signalBus)
@@ -71,6 +72,17 @@ namespace Game
             Vector3 pos = (Vector3)position + new Vector3(0, 0, -1);
             await transform.DOMove(pos, MOVE_SPEED);
         }
+
+        public void SetPointIdForFinish(int value)
+        {
+            if (value < 1)
+            {
+                Debug.Log("Wrong pointIdForFinish on element " + _elementID);
+                return;
+            }
+
+            _pointIdForFinish = value;
+        }
         
         private void OnMouseUpAsButton()
         {
@@ -80,11 +92,6 @@ namespace Game
         private void OnClick()
         {
             _signalBus.Fire(new OnElementClickSignal(this));
-            // if (CurrentState == State.None)
-            // {
-            //     _signalBus.Fire(new OnElementClickSignal(this));
-            //     CurrentState = State.Clicked;
-            // }
         }
 
         private void InitColorDictionary()

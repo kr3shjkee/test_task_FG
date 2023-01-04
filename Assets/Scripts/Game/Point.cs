@@ -25,13 +25,16 @@ namespace Game
         private Vector2 _localPosition;
         private int _pointID;
         private SignalBus _signalBus;
-        
+        private int _currentElementId;
+        private int _wayNumber;
 
         public int PointID => _pointID;
         public Vector2 LocalPosition => _localPosition;
+        
+        public int CurrentElementId => _currentElementId;
+        public int WayNumber => _wayNumber;
+        
         public State CurrentState;
-        public int CurrentElementId;
-        public int WayNumber;
 
         [Inject]
         public void Construct(PointSetting setting, SignalBus signalBus)
@@ -59,7 +62,8 @@ namespace Game
             transform.localPosition = new Vector3(_localPosition.x * multiplierX, 
                 _localPosition.y * multiplierY, 0f);
             CurrentState = State.None;
-            CurrentElementId = 0;
+            SetWayNumberDefault();
+            SetCurrentElementIdDefault();
         }
 
         public void SetSelected(bool isOn)
@@ -75,6 +79,38 @@ namespace Game
         {
             Destroy(gameObject);
         }
+
+        public void SetWayNumberDefault()
+        {
+            _wayNumber = 0;
+        }
+
+        public void SetWayNumber(int value)
+        {
+            if (value < 0)
+            {
+                Debug.Log("Wrong WayNumber on point " + _pointID);
+                return;
+            }
+
+            _wayNumber = value;
+        }
+
+        public void SetCurrentElementIdDefault()
+        {
+            _currentElementId = 0;
+        }
+
+        public void SetCurrentElementId(int value)
+        {
+            if (value < 0)
+            {
+                Debug.Log("Wrong CurrentElementId on point " + _pointID);
+                return;
+            }
+
+            _currentElementId = value;
+        }
         
         private void OnMouseUpAsButton()
         {
@@ -86,5 +122,7 @@ namespace Game
             if (CurrentState == State.Selected)
                 _signalBus.Fire(new OnPointForMoveClickSignal(_pointID));
         }
+        
+        
     }
 }
